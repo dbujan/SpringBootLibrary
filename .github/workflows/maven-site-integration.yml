@@ -46,10 +46,7 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-
-      - name: Install Doxygen
-        run: sudo apt-get update && sudo apt-get install -y doxygen graphviz
-
+            
       - name: Wait for MySQL to be ready
         run: |
           echo "Waiting for MySQL..."
@@ -66,10 +63,15 @@ jobs:
         run: mvn test jacoco:report
       
       - name: Run Integration Tests
-        run: mvn -Pintegration integration-test
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -Pintegration integration-test org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=dbujan
 
       - name: Run Performance Tests
         run: mvn -Pperformance integration-test
+
+      - name: Install Doxygen
+        run: sudo apt-get update && sudo apt-get install -y doxygen graphviz
 
       - name: Generate Maven Site
         run: mvn site
